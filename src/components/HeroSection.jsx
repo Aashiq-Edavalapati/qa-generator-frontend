@@ -1,53 +1,73 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronRight, Users, Database, Star } from 'lucide-react';
+import { ArrowRight, ChevronRight, Database, Sparkles, Star, Users } from 'lucide-react';
 
+// Hero Section Component
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center text-center overflow-hidden pt-20">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#03ef62]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-[#03ef62]/10 rounded-full blur-3xl"></div>
+      </div>
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white tracking-tighter">
-            Build Production-Ready
-            {/* ✨ STYLE: Applied the aurora gradient to the main headline */}
-            <span className="block aurora-text">AI Datasets in Minutes</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto">
-            Transform any topic into comprehensive, high-quality Q&A datasets.
-            Accelerate your machine learning, chatbot training, and research workflows.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button 
-              size="lg" 
-              // ✨ STYLE: Added a vibrant gradient and hover effect to the primary CTA
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-lg px-8 py-4 h-auto font-semibold shadow-lg shadow-blue-600/20 transition-transform duration-200 hover:scale-105"
-            >
-              Start Generating
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="border-slate-700 text-slate-300 bg-slate-900/50 hover:bg-slate-800 hover:text-white text-lg px-8 py-4 h-auto"
-            >
-              Try Demo Below
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-[#f8f7f2]/70 border border-[#d1caca]/80 rounded-full px-4 py-2 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-[#03ef62]" />
+            <span className="text-sm font-medium text-[#5c5c5c]">Powered by Advanced AI</span>
           </div>
 
-          <div className="flex items-center justify-center space-x-8 pt-12 text-slate-400">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5" />
-              <span>10,000+ Users</span>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-[#333333] tracking-tighter leading-tight">
+            Build Production-Ready
+            <span className="block text-[#03ef62] mt-2">Q&A Datasets</span>
+            <span className="block text-[#333333] mt-2">in Minutes</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-[#5c5c5c] max-w-3xl mx-auto leading-relaxed">
+            Transform any topic into comprehensive, high-quality Q&A datasets.
+            <span className="block mt-2">Accelerate your ML training and research workflows.</span>
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+            <button className="group bg-[#03ef62] hover:bg-[#02d957] text-[#333333] text-lg px-8 py-4 rounded-xl font-bold transition-all duration-200 shadow-xl shadow-[#03ef62]/20 flex items-center gap-2">
+              Start Generating
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+            </button>
+            <button className="border-2 border-[#b0aeab] hover:border-[#a09e9b] hover:bg-[#d1caca]/50 text-[#5c5c5c] text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2">
+              Try Demo Below
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="flex flex-wrap items-center justify-center gap-8 pt-16 text-[#5c5c5c]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#f8f7f2]/70 border border-[#d1caca]/80 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-[#03ef62]" />
+              </div>
+              <div className="text-left">
+                <div className="text-2xl font-bold text-[#333333]">10K+</div>
+                <div className="text-sm text-[#7a7a7a]">Active Users</div>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Database className="h-5 w-5" />
-              <span>1M+ Datasets Generated</span>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#f8f7f2]/70 border border-[#d1caca]/80 rounded-lg flex items-center justify-center">
+                <Database className="h-5 w-5 text-[#03ef62]" />
+              </div>
+              <div className="text-left">
+                <div className="text-2xl font-bold text-[#333333]">1M+</div>
+                <div className="text-sm text-[#7a7a7a]">Datasets Created</div>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-              <span>4.9/5 Rating</span>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#f8f7f2]/70 border border-[#d1caca]/80 rounded-lg flex items-center justify-center">
+                <Star className="h-5 w-5 text-[#03ef62] fill-[#03ef62]" />
+              </div>
+              <div className="text-left">
+                <div className="text-2xl font-bold text-[#333333]">4.9/5</div>
+                <div className="text-sm text-[#7a7a7a]">User Rating</div>
+              </div>
             </div>
           </div>
         </div>

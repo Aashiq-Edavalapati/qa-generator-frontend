@@ -17,46 +17,48 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  
+  /* Light Mode - Powdered White & Emerald */
+  --background: oklch(0.98 0.002 264); /* Soft powdered white */
+  --foreground: oklch(0.25 0.015 255); /* Deep zinc for text */
+  --card: oklch(1 0 0); /* Pure white cards */
+  --card-foreground: oklch(0.25 0.015 255);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.25 0.015 255);
+  --primary: oklch(0.548 0.155 163); /* Rich emerald green */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.005 264); /* Light zinc */
+  --secondary-foreground: oklch(0.25 0.015 255);
+  --muted: oklch(0.95 0.008 264); /* Muted zinc */
+  --muted-foreground: oklch(0.50 0.012 255); /* Medium zinc */
+  --accent: oklch(0.92 0.01 264); /* Subtle zinc accent */
+  --accent-foreground: oklch(0.548 0.155 163); /* Emerald on accent */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.90 0.008 264); /* Zinc border */
+  --input: oklch(0.90 0.008 264);
+  --ring: oklch(0.548 0.155 163); /* Emerald focus ring */
+  --chart-1: oklch(0.548 0.155 163); /* Emerald */
+  --chart-2: oklch(0.448 0.135 163); /* Dark emerald */
+  --chart-3: oklch(0.648 0.145 163); /* Light emerald */
+  --chart-4: oklch(0.50 0.012 255); /* Zinc */
+  --chart-5: oklch(0.35 0.015 255); /* Dark zinc */
+  --sidebar: oklch(0.99 0 0); /* White sidebar */
+  --sidebar-foreground: oklch(0.25 0.015 255);
+  --sidebar-primary: oklch(0.548 0.155 163); /* Emerald */
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.008 264); /* Light zinc */
+  --sidebar-accent-foreground: oklch(0.25 0.015 255);
+  --sidebar-border: oklch(0.90 0.008 264);
+  --sidebar-ring: oklch(0.548 0.155 163);
 }
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: oklch(0.548 0.155 163);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: oklch(0.448 0.135 163);
 }
 
 body {
@@ -79,28 +81,30 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: oklch(0.548 0.155 163);
+  color: white;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  background-color: oklch(0.448 0.135 163);
+  border-color: oklch(0.448 0.135 163);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 4px auto oklch(0.548 0.155 163);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: oklch(0.25 0.015 255);
+    background-color: oklch(0.98 0.002 264);
   }
   a:hover {
-    color: #747bff;
+    color: oklch(0.448 0.135 163);
   }
   button {
-    background-color: #f9f9f9;
+    background-color: oklch(0.548 0.155 163);
   }
 }
 
@@ -143,37 +147,38 @@ button:focus-visible {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark Mode - Dark Zinc & Vibrant Emerald */
+  --background: oklch(0.15 0.015 255); /* Deep zinc background */
+  --foreground: oklch(0.96 0.005 264); /* Soft white text */
+  --card: oklch(0.20 0.015 255); /* Elevated zinc cards */
+  --card-foreground: oklch(0.96 0.005 264);
+  --popover: oklch(0.20 0.015 255);
+  --popover-foreground: oklch(0.96 0.005 264);
+  --primary: oklch(0.648 0.175 163); /* Bright emerald */
+  --primary-foreground: oklch(0.10 0.015 255); /* Dark zinc text on emerald */
+  --secondary: oklch(0.28 0.015 255); /* Medium zinc */
+  --secondary-foreground: oklch(0.96 0.005 264);
+  --muted: oklch(0.28 0.015 255);
+  --muted-foreground: oklch(0.65 0.008 264); /* Muted text */
+  --accent: oklch(0.25 0.015 255); /* Accent zinc */
+  --accent-foreground: oklch(0.648 0.175 163); /* Emerald on accent */
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: oklch(0.35 0.015 255); /* Subtle zinc borders */
+  --input: oklch(0.35 0.015 255);
+  --ring: oklch(0.648 0.175 163); /* Emerald focus ring */
+  --chart-1: oklch(0.648 0.175 163); /* Bright emerald */
+  --chart-2: oklch(0.548 0.155 163); /* Medium emerald */
+  --chart-3: oklch(0.748 0.165 163); /* Light emerald */
+  --chart-4: oklch(0.65 0.008 264); /* Light zinc */
+  --chart-5: oklch(0.45 0.012 255); /* Medium zinc */
+  --sidebar: oklch(0.18 0.015 255); /* Darker zinc sidebar */
+  --sidebar-foreground: oklch(0.96 0.005 264);
+  --sidebar-primary: oklch(0.648 0.175 163); /* Emerald */
+  --sidebar-primary-foreground: oklch(0.10 0.015 255);
+  --sidebar-accent: oklch(0.28 0.015 255);
+  --sidebar-accent-foreground: oklch(0.96 0.005 264);
+  --sidebar-border: oklch(0.35 0.015 255);
+  --sidebar-ring: oklch(0.648 0.175 163);
 }
 
 @layer base {

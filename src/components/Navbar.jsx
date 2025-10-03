@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { Database, Menu, X } from 'lucide-react';
 
+// Navbar Component
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -20,26 +20,25 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-slate-950/80 backdrop-blur-lg border-b border-slate-800' : 'bg-transparent'
+      scrolled ? 'bg-[#edead7]/90 backdrop-blur-xl border-b border-[#d1caca]/50' : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-slate-900 ring-1 ring-slate-800 rounded-lg flex items-center justify-center">
-              <Database className="w-6 h-6 text-blue-500" />
+            <div className="w-11 h-11 bg-[#03ef62] rounded-xl flex items-center justify-center shadow-lg shadow-[#03ef62]/20">
+              <Database className="w-6 h-6 text-[#333333]" strokeWidth={2.5} />
             </div>
-            {/* ✨ STYLE: Added the aurora gradient class to the logo text */}
-            <span className="text-xl font-bold aurora-text">DatasetPro</span>
+            <span className="text-xl font-bold text-[#333333] tracking-tight">DatasetPro</span>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+            <div className="ml-10 flex items-baseline space-x-1">
               {navItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-slate-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors duration-200"
+                  className="text-[#5c5c5c] hover:text-[#333333] hover:bg-[#d1caca]/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                 >
                   {item.name}
                 </a>
@@ -47,49 +46,47 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800">
+          <div className="hidden md:flex items-center space-x-3">
+            <button className="text-[#5c5c5c] hover:text-[#333333] hover:bg-[#d1caca]/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200">
               Sign In
-            </Button>
-            <Button className="bg-slate-800 hover:bg-slate-700 text-white ring-1 ring-slate-700">
+            </button>
+            <button className="bg-[#03ef62] hover:bg-[#02d957] text-[#333333] px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-[#03ef62]/20">
               Get Started
-            </Button>
+            </button>
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-slate-300 hover:text-white"
+              className="text-[#5c5c5c] hover:text-[#333333] p-2"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800">
+          <div className="md:hidden pb-4">
+            <div className="space-y-1 bg-[#f8f7f2]/95 backdrop-blur-xl border border-[#d1caca]/50 rounded-2xl p-2 mt-2">
               {navItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-[#5c5c5c] hover:text-[#333333] hover:bg-[#d1caca]/50 block px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </a>
               ))}
-              <div className="border-t border-slate-800 pt-4 mt-2">
-                <Button variant="ghost" className="w-full text-slate-300 hover:text-white mb-2">
+              <div className="border-t border-[#d1caca]/50 pt-2 mt-2 space-y-2">
+                <button className="w-full text-[#5c5c5c] hover:text-[#333333] hover:bg-[#d1caca]/50 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200">
                   Sign In
-                </Button>
-                <Button className="w-full bg-slate-800 hover:bg-slate-700 text-white">
+                </button>
+                <button className="w-full bg-[#03ef62] hover:bg-[#02d957] text-[#333333] px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200">
                   Get Started
-                </Button>
+                </button>
               </div>
             </div>
           </div>

@@ -1,83 +1,105 @@
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { toast } from 'sonner';
-import { Download, FileText, Clock, CheckCircle2, Loader2, Zap, BrainCircuit, FileJson, Database } from 'lucide-react';
-import { statusToProgress, statusToStep } from '@/lib/utils';
+import { CheckCircle2, Database, Globe, Zap, Download, Loader2, BrainCircuit, FileJson, TrendingUp, FileText, RefreshCw, Send } from 'lucide-react';
+import { statusToStep } from '../lib/utils';
 
-
-// 🎯 CHANGED: The front-end now calls your local script.
-const API_BASE_URL = 'http://localhost:8000';
+// API Configuration
+const SCRAPER_API_BASE_URL = 'https://qa-scraper-api.onrender.com';
+const QA_API_BASE_URL = 'http://localhost:8000'; // Placeholder for local Q&A generation
 
 const DemoSection = () => {
   const [topic, setTopic] = useState('');
+  const [processStage, setProcessStage] = useState('idle'); // 'idle', 'scraping', 'scraping_complete', 'generating_qa', 'qa_complete'
   const [task, setTask] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [rawTextResult, setRawTextResult] = useState('');
+  const [qaResult, setQAResult] = useState(null);
+  const [currentStatusMessage, setCurrentStatusMessage] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
 
+  // This effect handles polling for both scraping and Q&A generation tasks
   useEffect(() => {
-    if (!task || !task.id || ['SUCCESS', 'FAILURE'].includes(task.state)) {
-      return;
-    }
+    // A clean-up function ref for the interval
+    let intervalId = null;
 
-    const intervalId = setInterval(async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/status/${task.id}`);
-        if (!response.ok) {
-          // Stop polling if the task is no longer found (e.g., server restarted)
-          if(response.status === 404) {
-             toast.error('Task not found. Please start a new one.');
-             setIsLoading(false);
-             setTask(null);
+    if (task?.id && ['scraping', 'generating_qa'].includes(processStage)) {
+      intervalId = setInterval(async () => {
+        const isScraping = processStage === 'scraping';
+        const baseUrl = isScraping ? SCRAPER_API_BASE_URL : QA_API_BASE_URL;
+
+        try {
+          const response = await fetch(`${baseUrl}/status/${task.id}`);
+          if (!response.ok) {
+            if (response.status === 404) {
+               console.error("Task not found. Resetting.");
+               handleReset();
+            }
+            // Clear interval on error to prevent repeated failed requests
+            clearInterval(intervalId);
+            return;
           }
-          return;
-        }
-        const data = await response.json();
-        
-        setTask(prevTask => ({ ...prevTask, ...data }));
-        const newProgress = statusToProgress(data.info?.status);
-        const newStep = statusToStep(data.info?.status);
-        setProgress(newProgress);
-        setCurrentStep(newStep);
 
-        if (data.state === 'SUCCESS') {
-          toast.success('Q&A Dataset generation complete!');
-          setIsLoading(false);
-          setCurrentStep(5);
-        }
-        if (data.state === 'FAILURE') {
-          toast.error(data.info?.status || 'Task failed spectacularly!');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Error fetching status:", error);
-        setIsLoading(false);
-      }
-    }, 2500);
+          const data = await response.json();
+          setTask(prevTask => ({ ...prevTask, ...data }));
+          
+          const status = data.state; // Backend sends status in 'state' field
+          setCurrentStatusMessage(status);
+          
+          const newStep = statusToStep(status);
+          if (newStep > currentStep) {
+              setCurrentStep(newStep);
+          }
 
-    return () => clearInterval(intervalId);
-  }, [task]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!topic) {
-      toast.warning('A topic is required to begin.');
-      return;
+          if (data.state === 'SUCCESS') {
+            clearInterval(intervalId); // Stop polling on success
+            if (isScraping) {
+              // Correctly access the 'content' field from the backend result
+              setRawTextResult(data.result.content);
+              setProcessStage('scraping_complete');
+              setCurrentStep(3); // Mark scraping as fully complete
+            } else {
+              setQAResult(data.result);
+              setProcessStage('qa_complete');
+              setCurrentStep(5); // Mark entire process as complete
+            }
+          } else if (data.state === 'FAILURE') {
+            console.error("Task failed:", data.error);
+            alert(`The task failed: ${data.error}. Please try again.`);
+            clearInterval(intervalId); // Stop polling on failure
+            handleReset();
+          }
+        } catch (error) {
+          console.error("Error fetching status:", error);
+          clearInterval(intervalId); // Stop polling on error
+        }
+      }, 2500);
     }
 
-    setIsLoading(true);
+    return () => {
+        if(intervalId) {
+            clearInterval(intervalId);
+        }
+    };
+  }, [task, processStage, currentStep]);
+
+
+  const handleScrapeSubmit = async (e) => {
+    e.preventDefault();
+    if (!topic) return;
+
+    // Reset component state for a new task
+    setProcessStage('idle');
     setTask(null);
-    setProgress(0);
+    setRawTextResult('');
+    setQAResult(null);
+    setCurrentStatusMessage('');
     setCurrentStep(0);
-    toast.info('Initiating generation pipeline...');
+
+    setProcessStage('scraping');
+    setCurrentStep(1);
+    setCurrentStatusMessage('Initializing scraping task...');
 
     try {
-      // 🎯 CHANGED: The POST request now goes to the new local endpoint.
-      const response = await fetch(`${API_BASE_URL}/generate-qa`, {
+      // FIX: Changed endpoint from '/scrape' to '/generate' to match the backend
+      const response = await fetch(`${SCRAPER_API_BASE_URL}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `topic=${encodeURIComponent(topic)}`,
@@ -87,174 +109,205 @@ const DemoSection = () => {
 
       const data = await response.json();
       setTask({ id: data.task_id, state: 'PENDING' });
-      setCurrentStep(1); // Move to the first step visually
     } catch (error) {
-      console.error("Error starting task:", error);
-      toast.error('Could not connect to the local generation script. Is it running?');
-      setIsLoading(false);
+      console.error("Error starting scrape task:", error);
+      alert("Failed to start the scraping task. Please check the console for details.");
+      handleReset();
     }
   };
 
-  const handleDownload = () => {
-    // 🎯 CHANGED: This now downloads the final QA pairs as a JSON file.
-    const qaData = task?.result?.qa_pairs;
-    if (qaData) {
-      const blob = new Blob([JSON.stringify(qaData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      const fileName = `${task.result.topic.replace(/\s+/g, '_')}_dataset.json`;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success('JSON dataset downloaded!');
-    }
+  const handleGenerateQASubmit = async () => {
+      setProcessStage('generating_qa');
+      setCurrentStatusMessage('Initializing Q&A generation...');
+
+      // --- MOCK API CALL FOR LOCAL QA GENERATION ---
+      // In a real scenario, you would make a fetch call here.
+      // For this placeholder, we'll simulate the process.
+      console.log("Sending raw text to local QA API (placeholder)...");
+      const mockTaskId = `mock-qa-task-${Date.now()}`;
+      setTask({ id: mockTaskId, state: 'PENDING' });
+
+      setTimeout(() => {
+          const mockResult = { topic: topic, qa_pairs: [{question: `What is the significance of ${topic}?`, answer: `Details about ${topic} would be generated here.`}, {question: `When was ${topic} first discovered?`, answer: "This is a placeholder answer."}] };
+          setTask(prev => ({ ...prev, state: 'SUCCESS', info: { status: 'Generation Complete' }, result: mockResult }));
+          setCurrentStatusMessage('Generation Complete');
+          setQAResult(mockResult);
+          setProcessStage('qa_complete');
+          setCurrentStep(5);
+      }, 3000); // Simulate a 3-second generation time
+      // --- END MOCK API CALL ---
+  };
+
+  const handleDownload = (content, filename, contentType) => {
+    const blob = new Blob([content], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
   
-  // ✨ NEW: A more visually appealing progress tracker component.
+  const handleReset = () => {
+    setTopic('');
+    setProcessStage('idle');
+    setTask(null);
+    setRawTextResult('');
+    setQAResult(null);
+    setCurrentStatusMessage('');
+    setCurrentStep(0);
+  };
+
+  const isLoading = processStage === 'scraping' || processStage === 'generating_qa';
+
   const ProgressTracker = () => {
     const steps = [
-      { step: 1, label: "Initializing", icon: <Zap className="w-4 h-4" /> },
-      { step: 2, label: "Data Collection", icon: <Database className="w-4 h-4" /> },
-      { step: 3, label: "Web Scraping", icon: <FileText className="w-4 h-4" /> },
-      { step: 4, label: "Q&A Generation", icon: <BrainCircuit className="w-4 h-4" /> },
+      { step: 1, label: "Initialize", icon: <Zap className="w-4 h-4" /> },
+      { step: 2, label: "Collect Data", icon: <Database className="w-4 h-4" /> },
+      { step: 3, label: "Web Scraping", icon: <Globe className="w-4 h-4" /> },
+      { step: 4, label: "Generate Q&A", icon: <BrainCircuit className="w-4 h-4" /> },
       { step: 5, label: "Complete", icon: <CheckCircle2 className="w-4 h-4" /> }
     ];
 
     return (
-      <div className="flex justify-between items-center w-full">
-        {steps.map((item, index) => (
-          <>
-            <div key={item.step} className="flex flex-col items-center z-10">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
-                currentStep >= item.step ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'
+      <div className="relative">
+        <div className="absolute top-5 left-0 right-0 h-0.5 bg-[#d1caca]">
+          <div 
+            className="h-full bg-[#03ef62] transition-all duration-500 ease-out"
+            style={{ width: `${currentStep > 1 ? ((currentStep - 1) / (steps.length - 1)) * 100 : 0}%` }}
+          ></div>
+        </div>
+        <div className="relative flex justify-between">
+          {steps.map((item) => (
+            <div key={item.step} className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${
+                currentStep >= item.step 
+                  ? 'bg-[#03ef62] border-[#03ef62] text-[#333333]' 
+                  // Highlight the current active step even if not complete
+                  : isLoading && currentStep === item.step -1 
+                  ? 'bg-amber-400 border-amber-400 text-[#333333] animate-pulse'
+                  : 'bg-[#f8f7f2] border-[#d1caca] text-[#a09e9b]'
               }`}>
                 {currentStep > item.step ? <CheckCircle2 className="w-5 h-5" /> : item.icon}
               </div>
-              <p className={`mt-2 text-xs text-center font-semibold transition-colors duration-500 ${
-                 currentStep >= item.step ? 'text-white' : 'text-slate-500'
+              <p className={`mt-3 text-xs font-semibold text-center transition-colors duration-500 ${
+                currentStep >= item.step ? 'text-[#333333]' : 'text-[#a09e9b]'
               }`}>
                 {item.label}
               </p>
             </div>
-            {index < steps.length - 1 && (
-              <div className="flex-1 h-1 bg-slate-700 -mx-4">
-                 <div className="h-1 bg-blue-600 transition-all duration-500" style={{ width: currentStep > index + 1 ? '100%' : (currentStep === index + 1 ? `${(progress % 20) * 5}%` : '0%') }} />
-              </div>
-            )}
-          </>
-        ))}
+          ))}
+        </div>
       </div>
     );
   };
 
   return (
-    <section id="demo" className="py-24">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">Live Demo</h2>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Enter any topic and watch our AI pipeline construct a high-quality Q&A dataset in real-time.
+    <section id="demo" className="py-32 bg-[#edead7]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-[#f8f7f2]/70 border border-[#d1caca]/80 rounded-full px-4 py-2 backdrop-blur-sm mb-6">
+            <TrendingUp className="w-4 h-4 text-[#03ef62]" />
+            <span className="text-sm font-medium text-[#5c5c5c]">Interactive Demo</span>
+          </div>
+          <h2 className="text-5xl md:text-6xl font-bold text-[#333333] mb-6 tracking-tight">See It In Action</h2>
+          <p className="text-xl text-[#5c5c5c] max-w-2xl mx-auto">
+            A two-step process: First, scrape raw text from the web, then generate a structured Q&A dataset.
           </p>
         </div>
 
-        <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-          <CardContent className="p-8 space-y-8">
-            {/* Input Section */}
-            <div>
-              <Label htmlFor="demo-topic" className="text-lg font-semibold text-white mb-2">
-                Topic
-              </Label>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Input
-                  id="demo-topic"
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g., The Future of Renewable Energy"
-                  disabled={isLoading}
-                  className="text-lg h-14 bg-slate-900 border-slate-700 focus:border-blue-500 ring-offset-slate-950 text-white placeholder-slate-500"
-                />
-                <Button 
-                  onClick={handleSubmit}
-                  disabled={isLoading || !topic.trim()} 
-                  className="w-full sm:w-auto h-14 text-lg font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-8"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <Zap className="w-6 h-6" />
-                  )}
-                  <span className="ml-3">Generate</span>
-                </Button>
-              </div>
-            </div>
-
-            {/* Progress Section */}
-            {task && (
-              <div className="space-y-6 pt-4 animate-in fade-in duration-500">
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-white mb-4">Generation Pipeline</h3>
-                  <p className="font-mono text-sm text-slate-400 bg-slate-800/50 inline-block px-3 py-1 rounded-md">
-                    {task.info?.status || `Status: ${task.state}`}
-                  </p>
+        <div className="bg-[#f8f7f2] border border-[#d1caca]/80 rounded-3xl p-8 md:p-12 shadow-2xl">
+          {/* ====== Step 1: Input Form ====== */}
+          {processStage === 'idle' && (
+            <form onSubmit={handleScrapeSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="demo-topic" className="block text-lg font-semibold text-[#333333] mb-3">
+                  What topic would you like to scrape?
+                </label>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <input
+                    id="demo-topic" type="text" value={topic} onChange={(e) => setTopic(e.target.value)}
+                    placeholder="e.g., Quantum Computing, Climate Change..."
+                    className="flex-1 text-lg h-14 bg-white border border-[#b0aeab] focus:border-[#03ef62] focus:ring-2 focus:ring-[#03ef62]/20 rounded-xl px-5 text-[#333333] placeholder-[#7a7a7a] outline-none transition-all"
+                  />
+                  <button type="submit" disabled={!topic.trim()} className="w-full sm:w-auto h-14 px-8 text-lg font-bold bg-[#03ef62] hover:bg-[#02d957] disabled:opacity-50 disabled:cursor-not-allowed text-[#333333] rounded-xl transition-all shadow-lg shadow-[#03ef62]/20 flex items-center justify-center gap-3">
+                    <Zap className="w-5 h-5" />
+                    <span>Scrape Text</span>
+                  </button>
                 </div>
-                <ProgressTracker />
               </div>
-            )}
+            </form>
+          )}
 
-            {/* Results Section */}
-            {task?.state === 'SUCCESS' && task.result && (
-              <div className="animate-in fade-in duration-700 pt-4">
-                <Card className="bg-slate-800/50 border-slate-700">
-                  <CardContent className="p-6 space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center">
-                          <CheckCircle2 className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-white">Dataset Ready!</h3>
-                          <p className="text-emerald-400 font-medium">Your Q&A dataset has been generated.</p>
-                        </div>
-                      </div>
-                      <Button onClick={handleDownload} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download .json
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div className="bg-slate-900/70 rounded-lg p-4">
-                        <div className="text-sm text-slate-400 mb-1">Topic</div>
-                        <div className="font-semibold text-white truncate">{task.result.topic}</div>
-                      </div>
-                      <div className="bg-slate-900/70 rounded-lg p-4">
-                        <div className="text-sm text-slate-400 mb-1">Q&A Pairs Generated</div>
-                        <div className="font-semibold text-white">{task.result.qa_pairs?.length || '0'}</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
-                        <FileJson className="w-4 h-4" />
-                        Preview
-                      </h4>
-                      <pre className="text-xs text-slate-300 overflow-auto max-h-40 p-3 bg-slate-900 rounded border border-slate-700 font-mono whitespace-pre-wrap">
-                        {JSON.stringify(task.result.qa_pairs?.slice(0, 2), null, 2)}
-                      </pre>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* ====== Progress & Results Sections ====== */}
+          {processStage !== 'idle' && (
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-2xl font-bold text-center text-[#333333] mb-3">Generation Pipeline</h3>
+                <p className="font-mono text-sm text-center text-[#7a7a7a] bg-white inline-block px-4 py-2 rounded-lg border border-[#d1caca]/80 w-full truncate">
+                    {currentStatusMessage}
+                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <ProgressTracker />
+
+              {/* ====== Stage 2: Scraped Text Preview ====== */}
+              {processStage === 'scraping_complete' && (
+                <div className="pt-8 border-t border-[#d1caca]/80 mt-8 space-y-6 animate-fade-in">
+                    <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-[#333333] flex items-center gap-2 text-lg">
+                            <FileText className="w-5 h-5 text-[#03ef62]" />
+                            Scraped Text Preview
+                        </h4>
+                        <div className="flex gap-2">
+                             <button onClick={() => handleDownload(rawTextResult, `${topic.replace(/\s+/g, '_')}_raw.txt`, 'text/plain')} className="bg-[#d1caca] hover:bg-[#b0aeab] text-[#333333] px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all">
+                                <Download className="w-4 h-4" /> Download .txt
+                            </button>
+                             <button onClick={handleGenerateQASubmit} className="bg-[#03ef62] hover:bg-[#02d957] text-[#333333] px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#03ef62]/20">
+                                <Send className="w-4 h-4" /> Generate Q&A
+                            </button>
+                        </div>
+                    </div>
+                  <pre className="text-xs text-[#5c5c5c] overflow-auto max-h-48 p-4 bg-white rounded-xl border border-[#d1caca]/80 font-mono leading-relaxed">
+                    {rawTextResult ? rawTextResult.substring(0, 1000) + '...' : 'No text was scraped.'}
+                  </pre>
+                </div>
+              )}
+              
+              {/* ====== Stage 3: QA Result Preview ====== */}
+              {processStage === 'qa_complete' && qaResult && (
+                 <div className="pt-8 border-t border-[#d1caca]/80 mt-8 space-y-6 animate-fade-in">
+                    <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-[#333333] flex items-center gap-2 text-lg">
+                            <FileJson className="w-5 h-5 text-[#03ef62]" />
+                            Q&A Dataset Preview
+                        </h4>
+                        <button onClick={() => handleDownload(JSON.stringify(qaResult.qa_pairs, null, 2), `${qaResult.topic.replace(/\s+/g, '_')}_dataset.json`, 'application/json')} className="bg-[#03ef62] hover:bg-[#02d957] text-[#333333] px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#03ef62]/20">
+                            <Download className="w-4 h-4" /> Download JSON
+                        </button>
+                    </div>
+                    <pre className="text-xs text-[#5c5c5c] overflow-auto max-h-64 p-4 bg-white rounded-xl border border-[#d1caca]/80 font-mono leading-relaxed">
+                        {JSON.stringify(qaResult.qa_pairs.slice(0, 3), null, 2)}
+                    </pre>
+                </div>
+              )}
+
+             {/* ====== Reset Button ====== */}
+             {(processStage === 'scraping_complete' || processStage === 'qa_complete') && (
+                <div className="text-center pt-4">
+                    <button onClick={handleReset} className="text-[#5c5c5c] hover:text-[#333333] font-semibold flex items-center gap-2 mx-auto">
+                        <RefreshCw className="w-4 h-4" /> Start Over
+                    </button>
+                </div>
+             )}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
 };
 
 export default DemoSection;
+

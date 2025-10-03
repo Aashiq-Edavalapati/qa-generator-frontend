@@ -1,42 +1,43 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Zap, Shield, Globe, Cpu, BookOpen, Target } from 'lucide-react';
+import { Zap, BrainCircuit, Target, Globe, Code2, Shield, Sparkles } from 'lucide-react';
 
+// Features Section Component
 const FeaturesSection = () => {
   const features = [
-    { icon: <Zap className="h-6 w-6" />, title: "Lightning Fast Generation", description: "Our optimized AI pipeline generates comprehensive datasets in under 5 minutes." },
-    { icon: <Cpu className="h-6 w-6" />, title: "AI-Powered Processing", description: "Advanced neural networks ensure contextually relevant and diverse Q&A pairs." },
-    { icon: <Target className="h-6 w-6" />, title: "High Accuracy", description: "Advanced fact-checking and content validation ensures a 99.2% accuracy rate." },
-    { icon: <Globe className="h-6 w-6" />, title: "Multi-Source Scraping", description: "Gathers data from Wikipedia, news articles, and web search for comprehensive coverage." },
-    { icon: <BookOpen className="h-6 w-6" />, title: "Multiple Formats", description: "Export to JSON, CSV, or integrate directly via our robust developer API." },
-    { icon: <Shield className="h-6 w-6" />, title: "Enterprise Security", description: "Your data is protected with enterprise-grade security and privacy compliance." },
+    { icon: <Zap className="h-6 w-6" />, title: "Lightning Fast", description: "Generate comprehensive datasets in under 5 minutes with our optimized pipeline.", color: "text-[#03ef62]" },
+    { icon: <BrainCircuit className="h-6 w-6" />, title: "AI-Powered", description: "Advanced neural networks ensure contextually relevant Q&A pairs.", color: "text-[#03ef62]" },
+    { icon: <Target className="h-6 w-6" />, title: "High Accuracy", description: "Advanced validation ensures 99.2% accuracy rate across all datasets.", color: "text-[#03ef62]" },
+    { icon: <Globe className="h-6 w-6" />, title: "Multi-Source", description: "Aggregates data from Wikipedia, news, and web for comprehensive coverage.", color: "text-[#03ef62]" },
+    { icon: <Code2 className="h-6 w-6" />, title: "Multiple Formats", description: "Export to JSON, CSV, or integrate via our robust developer API.", color: "text-[#03ef62]" },
+    { icon: <Shield className="h-6 w-6" />, title: "Enterprise Ready", description: "Bank-grade security with SOC 2 compliance and data encryption.", color: "text-[#03ef62]" },
   ];
 
   return (
-    <section id="features" className="py-24 bg-slate-900">
+    <section id="features" className="py-32 bg-[#edead7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">The Ultimate Toolkit for AI Data</h2>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Powerful features designed for researchers, developers, and organizations building the next generation of AI applications.
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 bg-[#f8f7f2]/70 border border-[#d1caca]/80 rounded-full px-4 py-2 backdrop-blur-sm mb-6">
+            <Sparkles className="w-4 h-4 text-[#03ef62]" />
+            <span className="text-sm font-medium text-[#5c5c5c]">Features</span>
+          </div>
+          <h2 className="text-5xl md:text-6xl font-bold text-[#333333] mb-6 tracking-tight">Everything You Need</h2>
+          <p className="text-xl text-[#5c5c5c] max-w-2xl mx-auto">
+            Powerful features designed for researchers, developers, and organizations building next-gen AI.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            // ✨ STYLE: Added a subtle glowing border effect on hover
-            <Card key={index} className="bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-colors duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-slate-900 ring-1 ring-slate-700 rounded-lg flex items-center justify-center text-blue-500">
-                    {feature.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                    <p className="text-slate-400">{feature.description}</p>
-                  </div>
+            <div key={index} className="group bg-[#f8f7f2]/70 border border-[#d1caca]/80 hover:border-[#b0aeab]/80 rounded-2xl p-8 transition-all duration-300 hover:bg-[#f8f7f2]">
+              <div className="flex items-start gap-4">
+                <div className={`flex-shrink-0 w-14 h-14 bg-[#f8f7f2] border border-[#d1caca]/80 rounded-xl flex items-center justify-center ${feature.color} group-hover:scale-110 transition-transform duration-300`}>
+                  {feature.icon}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-[#333333] mb-2">{feature.title}</h3>
+                  <p className="text-[#5c5c5c] leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
