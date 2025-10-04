@@ -34,10 +34,12 @@ const HeroSection = () => {
               Start Generating
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
+            <a href='#demo'>
             <button className="border-2 border-[#b0aeab] hover:border-[#a09e9b] hover:bg-[#d1caca]/50 text-[#5c5c5c] text-lg px-8 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2">
               Try Demo Below
               <ChevronRight className="w-5 h-5" />
             </button>
+            </a>
           </div>
 
           {/* Stats */}

@@ -17,7 +17,6 @@ const DemoSection = () => {
 
   // This effect handles polling for both scraping and Q&A generation tasks
   useEffect(() => {
-    // A clean-up function ref for the interval
     let intervalId = null;
 
     if (task?.id && ['scraping', 'generating_qa'].includes(processStage)) {
@@ -32,7 +31,6 @@ const DemoSection = () => {
                console.error("Task not found. Resetting.");
                handleReset();
             }
-            // Clear interval on error to prevent repeated failed requests
             clearInterval(intervalId);
             return;
           }
@@ -40,35 +38,35 @@ const DemoSection = () => {
           const data = await response.json();
           setTask(prevTask => ({ ...prevTask, ...data }));
           
-          const status = data.state; // Backend sends status in 'state' field
+          const status = data.state;
           setCurrentStatusMessage(status);
           
           const newStep = statusToStep(status);
-          if (newStep > currentStep) {
+          // Always update step to reflect progress, even within same stage
+          if (newStep > 0) {
               setCurrentStep(newStep);
           }
 
           if (data.state === 'SUCCESS') {
-            clearInterval(intervalId); // Stop polling on success
+            clearInterval(intervalId);
             if (isScraping) {
-              // Correctly access the 'content' field from the backend result
               setRawTextResult(data.result.content);
               setProcessStage('scraping_complete');
               setCurrentStep(3); // Mark scraping as fully complete
             } else {
               setQAResult(data.result);
               setProcessStage('qa_complete');
-              setCurrentStep(5); // Mark entire process as complete
+              setCurrentStep(5);
             }
           } else if (data.state === 'FAILURE') {
             console.error("Task failed:", data.error);
             alert(`The task failed: ${data.error}. Please try again.`);
-            clearInterval(intervalId); // Stop polling on failure
+            clearInterval(intervalId);
             handleReset();
           }
         } catch (error) {
           console.error("Error fetching status:", error);
-          clearInterval(intervalId); // Stop polling on error
+          clearInterval(intervalId);
         }
       }, 2500);
     }
@@ -85,20 +83,12 @@ const DemoSection = () => {
     e.preventDefault();
     if (!topic) return;
 
-    // Reset component state for a new task
-    setProcessStage('idle');
-    setTask(null);
-    setRawTextResult('');
-    setQAResult(null);
-    setCurrentStatusMessage('');
-    setCurrentStep(0);
-
+    handleReset(); // Reset component state for a new task
     setProcessStage('scraping');
     setCurrentStep(1);
     setCurrentStatusMessage('Initializing scraping task...');
 
     try {
-      // FIX: Changed endpoint from '/scrape' to '/generate' to match the backend
       const response = await fetch(`${SCRAPER_API_BASE_URL}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -119,10 +109,9 @@ const DemoSection = () => {
   const handleGenerateQASubmit = async () => {
       setProcessStage('generating_qa');
       setCurrentStatusMessage('Initializing Q&A generation...');
+      setCurrentStep(4); // Set current step to 4 for Q&A generation
 
       // --- MOCK API CALL FOR LOCAL QA GENERATION ---
-      // In a real scenario, you would make a fetch call here.
-      // For this placeholder, we'll simulate the process.
       console.log("Sending raw text to local QA API (placeholder)...");
       const mockTaskId = `mock-qa-task-${Date.now()}`;
       setTask({ id: mockTaskId, state: 'PENDING' });
@@ -134,7 +123,7 @@ const DemoSection = () => {
           setQAResult(mockResult);
           setProcessStage('qa_complete');
           setCurrentStep(5);
-      }, 3000); // Simulate a 3-second generation time
+      }, 3000);
       // --- END MOCK API CALL ---
   };
 
@@ -180,25 +169,32 @@ const DemoSection = () => {
           ></div>
         </div>
         <div className="relative flex justify-between">
-          {steps.map((item) => (
-            <div key={item.step} className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${
-                currentStep >= item.step 
-                  ? 'bg-[#03ef62] border-[#03ef62] text-[#333333]' 
-                  // Highlight the current active step even if not complete
-                  : isLoading && currentStep === item.step -1 
-                  ? 'bg-amber-400 border-amber-400 text-[#333333] animate-pulse'
-                  : 'bg-[#f8f7f2] border-[#d1caca] text-[#a09e9b]'
-              }`}>
-                {currentStep > item.step ? <CheckCircle2 className="w-5 h-5" /> : item.icon}
+          {steps.map((item) => {
+            // FIX: Simplified and more robust logic for determining step state
+            const isComplete = currentStep > item.step ||
+                               (processStage === 'scraping_complete' && item.step <= 3) ||
+                               processStage === 'qa_complete';
+            const isInProgress = isLoading && currentStep === item.step;
+
+            return (
+              <div key={item.step} className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${
+                  isComplete
+                    ? 'bg-[#03ef62] border-[#03ef62] text-[#333333]'
+                    : isInProgress
+                    ? 'bg-amber-400 border-amber-400 text-[#333333] animate-pulse'
+                    : 'bg-[#f8f7f2] border-[#d1caca] text-[#a09e9b]'
+                }`}>
+                  {isComplete ? <CheckCircle2 className="w-5 h-5" /> : item.icon}
+                </div>
+                <p className={`mt-3 text-xs font-semibold text-center transition-colors duration-500 ${
+                  currentStep >= item.step ? 'text-[#333333]' : 'text-[#a09e9b]'
+                }`}>
+                  {item.label}
+                </p>
               </div>
-              <p className={`mt-3 text-xs font-semibold text-center transition-colors duration-500 ${
-                currentStep >= item.step ? 'text-[#333333]' : 'text-[#a09e9b]'
-              }`}>
-                {item.label}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
